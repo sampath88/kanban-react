@@ -1,24 +1,48 @@
+import { useDrop } from "react-dnd";
 import PropTypes from "prop-types";
 import Card from "src/components/card";
+import { useCallback } from "react";
 
 const Tasks = ({ tasks }) => {
-  console.log(tasks);
+  const [{ canDrop, isOver }, drop] = useDrop(
+    () => ({
+      accept: "TASK",
+      canDrop: () => {
+        return true;
+      },
+      drop: (item) => {
+        console.log("item: ", item);
+      },
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop(),
+      }),
+    }),
+    [tasks],
+  );
+
+  const getActiveColor = () => {
+    if (!canDrop) return "bg-transparent";
+    if (!isOver) return "bg-yellow-100";
+    return "bg-green-300";
+  };
+
+  const moveCard = useCallback((dragIndex, hoverIndex) => {
+    console.log("moveCard: ", dragIndex, hoverIndex);
+  }, []);
+
+  const renderCard = useCallback(({ task, index }) => {
+    return <Card key={index} task={task} index={index} moveCard={moveCard} />;
+  }, []);
   return (
     <div>
       <div className="">
-        <div className="flex flex-col gap-4">
-          {tasks.map((task, index) => {
-            return (
-              <Card
-                key={index}
-                title={task.title}
-                date={task.date}
-                stats={task.stats}
-                profilePic={task.assignedTo}
-                progress={task.progress}
-              />
-            );
-          })}
+        <div
+          ref={drop}
+          role={"tasks"}
+          className={"flex flex-col gap-4 " + ` ${getActiveColor()}`}
+        >
+          {tasks.map((task, index) => renderCard({ task, index }))}
         </div>
       </div>
     </div>
