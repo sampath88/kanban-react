@@ -30,7 +30,9 @@ const Dashboard = () => {
                       color={"text-gray-100"}
                     />
                   </div>
-                  {pendingTasks.length ? <Tasks tasks={pendingTasks} /> : null}
+                  {pendingTasks.length ? (
+                    <Tasks tasks={pendingTasks} colStatus={"PENDING"} />
+                  ) : null}
                 </div>
               </div>
               <div className="">
@@ -42,7 +44,9 @@ const Dashboard = () => {
                       color={"text-gray-100"}
                     />
                   </div>
-                  {inProgress.length ? <Tasks tasks={inProgress} /> : null}
+                  {inProgress.length ? (
+                    <Tasks tasks={inProgress} colStatus={"PROGRESS"} />
+                  ) : null}
                 </div>
               </div>
               <div className="">
@@ -55,7 +59,7 @@ const Dashboard = () => {
                     />
                   </div>
                   {completedTasks.length ? (
-                    <Tasks tasks={completedTasks} />
+                    <Tasks tasks={completedTasks} colStatus={"COMPLETED"} />
                   ) : null}
                 </div>
               </div>
