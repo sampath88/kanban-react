@@ -2,10 +2,8 @@ import { useDrop } from "react-dnd";
 import PropTypes from "prop-types";
 import Card from "src/components/card";
 import { useCallback } from "react";
-import { useDispatch } from "react-redux";
 
 const Tasks = ({ tasks, colStatus, updateTask, updateTaskWithOrder }) => {
-  const dispatch = useDispatch();
   const [{ canDrop, isOver }, drop] = useDrop(
     () => ({
       accept: "TASK",
@@ -25,10 +23,6 @@ const Tasks = ({ tasks, colStatus, updateTask, updateTaskWithOrder }) => {
   );
 
   const moveCard = useCallback(({ source, dest, include }) => {
-    // console.log("dropped in middle");
-    // console.log("colStatus: ", colStatus);
-    // console.log("source: ", source);
-    // console.log("dest: ", dest);
     updateTaskWithOrder({ sourceId: source._id, destId: dest._id, include });
   }, []);
 
