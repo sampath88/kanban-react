@@ -1,18 +1,64 @@
 import Chip from "src/components/chip";
-import { useEffect, useState } from "react";
 import Tasks from "src/components/tasks";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { setTasks, updateTaskStatus, updateTasks } from "src/store/tasksSlice";
 
+const api = import.meta.env.VITE_API;
 const Dashboard = () => {
-  const [tasks, setTasks] = useState([]);
+  const { tasks } = useSelector((state) => state.tasksState);
 
-  const pendingTasks = tasks.filter((task) => task.status === "PENDING");
-  const inProgress = tasks.filter((task) => task.status === "PROGRESS");
-  const completedTasks = tasks.filter((task) => task.status === "COMPLETED");
+  const dispatch = useDispatch();
 
+  const pendingTasks = tasks
+    .filter((task) => task.status === "PENDING")
+    .sort((a, b) => a.order - b.order);
+  const inProgress = tasks
+    .filter((task) => task.status === "PROGRESS")
+    .sort((a, b) => a.order - b.order);
+  const completedTasks = tasks
+    .filter((task) => task.status === "COMPLETED")
+    .sort((a, b) => a.order - b.order);
+
+  const updateTask = async (task, status) => {
+    dispatch(updateTaskStatus({ updatedTask: { ...task, status } }));
+    fetch(api + "/task", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sourceId: task._id, status }),
+    }).then((res) => {
+      if (res.ok) {
+        getTasks();
+      } else {
+        console.error("something went wrong");
+      }
+    });
+  };
+
+  const updateTaskWithOrder = async ({ sourceId, destId, include }) => {
+    fetch(api + "/task/order", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sourceId, destId, include }),
+    }).then((res) => {
+      if (res.ok) {
+        getTasks();
+      } else {
+        console.error("something went wrong");
+      }
+    });
+  };
+
+  const getTasks = async () => {
+    const tasks = await fetch(api + "/task").then((res) => res.json());
+    dispatch(setTasks({ tasks }));
+  };
   useEffect(() => {
-    fetch("/constants/data.json")
-      .then((res) => res.json())
-      .then((data) => setTasks(() => [...data]));
+    getTasks();
   }, []);
   return (
     <div className="w-full h-full overflow-auto p-5 pb-20">
@@ -31,7 +77,12 @@ const Dashboard = () => {
                     />
                   </div>
                   {pendingTasks.length ? (
-                    <Tasks tasks={pendingTasks} colStatus={"PENDING"} />
+                    <Tasks
+                      tasks={pendingTasks}
+                      colStatus={"PENDING"}
+                      updateTask={updateTask}
+                      updateTaskWithOrder={updateTaskWithOrder}
+                    />
                   ) : null}
                 </div>
               </div>
@@ -45,7 +96,12 @@ const Dashboard = () => {
                     />
                   </div>
                   {inProgress.length ? (
-                    <Tasks tasks={inProgress} colStatus={"PROGRESS"} />
+                    <Tasks
+                      tasks={inProgress}
+                      colStatus={"PROGRESS"}
+                      updateTask={updateTask}
+                      updateTaskWithOrder={updateTaskWithOrder}
+                    />
                   ) : null}
                 </div>
               </div>
@@ -59,7 +115,12 @@ const Dashboard = () => {
                     />
                   </div>
                   {completedTasks.length ? (
-                    <Tasks tasks={completedTasks} colStatus={"COMPLETED"} />
+                    <Tasks
+                      tasks={completedTasks}
+                      colStatus={"COMPLETED"}
+                      updateTask={updateTask}
+                      updateTaskWithOrder={updateTaskWithOrder}
+                    />
                   ) : null}
                 </div>
               </div>

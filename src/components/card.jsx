@@ -67,7 +67,6 @@ const Card = ({ task, index, moveCard }) => {
           index: index,
           task,
           rect: ref.current?.getBoundingClientRect(),
-          placement: "end",
         };
       },
       collect: (monitor) => ({
@@ -95,9 +94,9 @@ const Card = ({ task, index, moveCard }) => {
     // if order not changed, then do nothing
     if (isSameItem(item) || isAdjacent(item)) return;
     moveCard({
-      item: { ...item, placement: "middle" },
-      destId: task.id,
+      source: item.task,
       dest: task,
+      include: isTopEnd,
     });
   };
 

@@ -2,8 +2,10 @@ import { useDrop } from "react-dnd";
 import PropTypes from "prop-types";
 import Card from "src/components/card";
 import { useCallback } from "react";
+import { useDispatch } from "react-redux";
 
-const Tasks = ({ tasks, colStatus }) => {
+const Tasks = ({ tasks, colStatus, updateTask, updateTaskWithOrder }) => {
+  const dispatch = useDispatch();
   const [{ canDrop, isOver }, drop] = useDrop(
     () => ({
       accept: "TASK",
@@ -11,8 +13,8 @@ const Tasks = ({ tasks, colStatus }) => {
         return item.type === "TASK";
       },
       drop: (item, monitor) => {
-        if (monitor.didDrop()) return;
-        console.log("dropped at end: ", item);
+        if (monitor.didDrop() || item.task.status === colStatus) return;
+        updateTask(item.task, colStatus);
       },
       collect: (monitor) => ({
         isOver: monitor.isOver(),
@@ -22,16 +24,28 @@ const Tasks = ({ tasks, colStatus }) => {
     [tasks],
   );
 
-  const moveCard = useCallback(({ item, dest }) => {
-    console.log("dropped in middle");
+  const moveCard = useCallback(({ source, dest, include }) => {
+    // console.log("dropped in middle");
     // console.log("colStatus: ", colStatus);
-    // console.log("source: ", item);
+    // console.log("source: ", source);
     // console.log("dest: ", dest);
+    updateTaskWithOrder({ sourceId: source._id, destId: dest._id, include });
   }, []);
+
+  const getHighlight = () => {
+    if (canDrop && isOver) {
+      return "bg-blue-100 outline-dashed outline-2 outline-blue-400";
+    }
+    if (canDrop) {
+      return "bg-gray-100 outline-dashed outline-2 outline-gray-400";
+    }
+    return "";
+  };
 
   const renderCard = useCallback(({ task, index }) => {
     return <Card key={task.id} task={task} index={index} moveCard={moveCard} />;
   }, []);
+
   return (
     <div>
       <div className="">
@@ -39,9 +53,7 @@ const Tasks = ({ tasks, colStatus }) => {
           ref={drop}
           role={"tasks"}
           className={
-            "flex flex-col p-1 pb-32 rounded-md" +
-            ` ${canDrop ? "bg-gray-100 outline-dashed outline-2 outline-gray-400" : ""}` +
-            ` ${canDrop && isOver ? " bg-blue-100 outline-blue-400" : ""}`
+            "flex flex-col p-1 pb-32 rounded-md" + ` ${getHighlight()}`
           }
         >
           {tasks.map((task, index) => renderCard({ task, index }))}
@@ -54,6 +66,8 @@ const Tasks = ({ tasks, colStatus }) => {
 Tasks.propTypes = {
   tasks: PropTypes.array.isRequired,
   colStatus: PropTypes.string.isRequired,
+  updateTask: PropTypes.func.isRequired,
+  updateTaskWithOrder: PropTypes.func.isRequired,
 };
 
 export default Tasks;
